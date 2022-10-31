@@ -3,9 +3,14 @@ username: ubuntu
 vhost_name: laravelrepo
 server_document_root: "/var/www/html"
 
+db_user: laravel
+db_name: laravel
+db_password: laravel
+
 
 
 # Variables for Role Certbot certs.
+
 certbot_create_if_missing: false
 certbot_create_method: standalone
 certbot_admin_email: rolandeni@yahoo.com
@@ -14,5 +19,5 @@ certbot_create_standalone_stop_services:
   - apache2
 
 apache_vhosts:
-  - {servername: "php.darvein.xyz", serveralias: "www.php.darvein.xyz", documentroot: "/var/www/html/lavarel_project/public"}
+  - {servername: "rolandaltschool.me", serveralias: "www.rolandaltschool.me", documentroot: "/var/www/html/laravelrepo/public"}
 
