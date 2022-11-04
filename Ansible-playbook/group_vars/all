@@ -3,9 +3,9 @@ username: ubuntu
 vhost_name: laravelrepo
 server_document_root: "/var/www/html"
 
-db_user: laravel
-db_name: laravel
-db_password: laravel
+db_user: roland
+db_name: rolanddb
+db_password: roland123
 
 
 

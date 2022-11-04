@@ -8,47 +8,46 @@
 - name: Install PHP
   apt: name=php{{php_version}} state=latest
 
-- name: Install PHP MB
+- name: TO INSTALL PHP MB
   apt: name=php{{php_version}}-mbstring state=latest
 
-- name: Install PHP XML
+- name: TO INSTALL PHP XML
   apt: name=php-xml state=latest
 
-- name: Install unzip
+- name: TO INSTALL UNZIP
   apt: name=unzip state=latest
 
-- name: Download php-composer
+- name: TO DOWNLOAD COMPOSER
   get_url:
     url: https://getcomposer.org/installer
     dest: /tmp/installer
 
-- name: install composer
+- name: NOW TO INSTALL COMPOSER
   shell: cat /tmp/installer | php -- --install-dir=/usr/local/bin
   args:
     creates: /usr/local/bin/composer
 
-- name: rename composer.phar to composer
+- name: TO MOVE COMPOSER TO RIGHT PATH
   shell: mv /usr/local/bin/composer.phar /usr/local/bin/composer
   args:
     creates: /usr/local/bin/composer
 
-- name: make composer executable
+- name: TO MAKE COMPOSER FILE EXECUTABLE
   file: 
     path: /usr/local/bin/composer
     mode: a+x
     state: file
 
-- name: install apache2 server
+- name: TO INSTALL APACHE SERVER
   apt:
      name: apache2
      state: present
 
-- name: install php curl 
+- name: TO INSTALL PHP CURL
   shell: sudo apt-get install php-curl -y
 
-- name: install php 8.0 repo
+- name: To INSTALL PHP 8.0 FROM repo
   shell: echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list
-  shell: sudo apt update -y
   shell: sudo apt install -y php8.0-common php8.0-cli -y
 
 - name: install lamp stack
@@ -68,120 +67,145 @@
     state: present
     update_cache: yes 
 
-- name: Install dependencies for PostgreSQL
-  apt: name={{ item }} update_cache=true state=latest
+#- name: Install dependencies for PostgreSQL
+#  apt: name={{ item }} update_cache=true state=latest
+#  with_items:
+#    - bash
+#    - openssl
+#    - libssl-dev
+#    - libssl-doc
+# 
+#- name: Install PostgreSQL 
+#  apt: name={{ item }} update_cache=true state=present
+#  with_items:
+#    - postgresql
+#    - postgresql-contrib
+#    - libpq-dev
+#    - python3-psycopg2
+#
+#- name: Ensure the PostgreSQL service is running
+#  service: name=postgresql state=started enabled=yes
+#
+#- name: Create the database specified in vars
+#  become: true
+#  become_user: postgres
+#  postgresql_db: name={{ db_name }}
+#       template='template0'
+#        state=present
+# 
+#- name: Ensure user has access to the new database
+#  become: true
+#  become_user: postgres
+#  postgresql_user: db={{ db_name }}
+#      name={{ db_user }}
+#      password={{ db_password }}
+#      priv=ALL
+#      state=present
+#  
+#- name: Ensure user does not have unnecessary permissions
+#  become: true
+#  become_user: postgres
+#  postgresql_user: name={{ db_user }}
+#      role_attr_flags=NOSUPERUSER,NOCREATEDB
+#      state=present
+#
+- name: install python, pip etc
+  shell: apt-get -y install "{{ item }}"
   with_items:
-    - bash
-    - openssl
-    - libssl-dev
-    - libssl-doc
- 
-- name: Install PostgreSQL 
-  apt: name={{ item }} update_cache=true state=present
-  with_items:
-    - postgresql
-    - postgresql-contrib
-    - libpq-dev
-    - python3-psycopg2
+    - pip 
+    - python3-dev 
+    - default-libmysqlclient-dev 
+    - build-essential
 
-- name: Ensure the PostgreSQL service is running
-  service: name=postgresql state=started enabled=yes
 
-- name: Create the database specified in vars
-  become: true
-  become_user: postgres
-  postgresql_db: name={{ db_name }}
-       template='template0'
-        state=present
- 
-- name: Ensure user has access to the new database
-  become: true
-  become_user: postgres
-  postgresql_user: db={{ db_name }}
-      name={{ db_user }}
-      password={{ db_password }}
-      priv=ALL
-      state=present
-  
-- name: Ensure user does not have unnecessary permissions
-  become: true
-  become_user: postgres
-  postgresql_user: name={{ db_user }}
-      role_attr_flags=NOSUPERUSER,NOCREATEDB
-      state=present
+- name: To install MySQL server
+  shell: apt-get -y install mysql-server
 
-- name: remove laravelrepo 
+- name: pip install mysqlclient
+  shell: pip install mysqlclient
+
+- name: Start the MySQL service
+  action: service name=mysql state=started
+
+
+- name: create mysql db
+  mysql_db: name={{ db_name }} state=present
+
+- name: create user mysql
+  mysql_user: name={{ db_user }} password={{ db_password }} priv=database1.*:ALL host='%' state=present
+
+- name: To remove laravelRepo if exist from previous installation
   shell: sudo rm -rf /var/www/html/{{ vhost_name }}/
 
-- name: checkout latest code from github
+- name: TO GET CODE FROM REPO
   git: >
     repo=https://github.com/f1amy/laravel-realworld-example-app.git
     dest=/opt/{{ vhost_name }}
     force=yes
     accept_hostkey=yes
 
-- name: copy laravelrepo
+- name: TO COPY LARAVELREPO
   shell: sudo mv -f /opt/{{ vhost_name }} /var/www/html/
 
-- name: permission for composer install
+- name: TO CHANGE COMPOSER PERMISSION
   shell: sudo chmod -R 777 /var/www/html/{{ vhost_name }}/
 
-- name: remove default webphp from routes
+- name: TO CHANGE DEFAULT WEB.PHP PAGE
   shell: sudo rm -rf /var/www/html/{{ vhost_name }}/routes/web.php
 
-- name: create web.php in routes
+- name: TO CREATE A NEW WEB.PHP
   template: src=webphp dest="/var/www/html/{{ vhost_name }}/routes/web.php"
 
-- name: "Composer install"
+- name: TO RUN COMPOSER INSTALL
   become: false
   composer:
     command: install 
     global_command: false  
     working_dir: /var/www/html/{{ vhost_name }}/
 
-- name: Change permission
+- name: TO CHANGE PERMISSION
   shell: sudo chown -R www-data:www-data /var/www/html/{{ vhost_name }}/
 
-- name: Change permission for storage
+- name: TO CHANGE PERMISSION FOR storage
   shell: sudo chmod -R 775 /var/www/html/{{ vhost_name }}/storage
 
-- name: Create .env file for database
+- name: TO CREATE NEW ENV FILE
   template: src=env.example dest="/var/www/html/{{ vhost_name }}/.env"
 
-- name: To change artisan file permission
+- name: TO CHANGE ARTISAN PERMISSION
   shell: sudo chmod 777 /var/www/html/{{ vhost_name }}/artisan
 
-- name: To generate artisan key
+- name: TO GENERATE APP KEY
   shell: php /var/www/html/{{ vhost_name }}/artisan key:generate
 
-- name: update and upgrade
+- name: TO UPDATE && UPGRADE
   shell: sudo apt update && sudo apt upgrade -y
 
-- name: run migration
+- name: NOW RUN MIGRATION
   shell: php /var/www/html/{{ vhost_name }}/artisan migrate
 
-#- name: run migration seed
+#- name: TO RUN MIGRATION WITH SEED
 #  shell: php /var/www/html/{{ vhost_name }}/artisan migrate --seed
 
-#- name: run migration refresh
+#- name: TO RUN MIGRATION REFRESH+SEED
 #  shell: php /var/www/html/{{ vhost_name }}/artisan migrate:refresh --seed 
 
-#- name: run migration
+#- name: TO RUN FRESH
 #  shell: php /var/www/html/{{ vhost_name }}/artisan migrate:fresh
 
-- name: Remove default apache vhost config from sites-enabled
+- name: TO REMOVE APACHE DEFAULT PAGE
   file: name=/etc/apache2/sites-enabled/000-default.conf state=absent
 
-- name: Create apache vhosts for  domain
+- name: NOW CREATE NEW CONFIG FILE
   template: src=web.conf.j2 dest="/etc/apache2/sites-available/{{ vhost_name }}.conf" 
 
-- name: permission for laravel conf file
+- name: GIVING CONF FILE THE RIGHT PERMISSION
   shell: sudo chmod -R 777 /etc/apache2/sites-available/{{ vhost_name }}.conf
 
-- name: Update a2ensite
+- name: PERFORM a2ensite
   command: a2ensite {{ vhost_name }}
 
-- name: Enable the Apache rewrite module
+- name: NOW ENABLE Apache module
   command:  a2enmod rewrite
 
   notify:
