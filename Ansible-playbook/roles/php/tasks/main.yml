@@ -117,9 +117,11 @@
     - default-libmysqlclient-dev 
     - build-essential
 
-
-- name: To install MySQL server
+- name: Install MySQL server
   shell: apt-get -y install mysql-server
+
+- name: Install MySQL client
+  shell: apt-get -y install mysql-client
 
 - name: pip install mysqlclient
   shell: pip install mysqlclient
@@ -127,12 +129,14 @@
 - name: Start the MySQL service
   action: service name=mysql state=started
 
-
 - name: create mysql db
-  mysql_db: name={{ db_name }} state=present
+  mysql_db: name=roland state=present
 
 - name: create user mysql
-  mysql_user: name={{ db_user }} password={{ db_password }} priv= '.*:ALL' host='%' state=present
+  mysql_user: name=roland password=roland123 priv=rolanddb.*:ALL host='%' state=present
+
+- name: remove gitlaravel
+  shell: sudo rm -rf /var/www/html/{{ vhost_name }}/
 
 - name: To remove laravelRepo if exist from previous installation
   shell: sudo rm -rf /var/www/html/{{ vhost_name }}/
@@ -156,10 +160,34 @@
 - name: TO CREATE A NEW WEB.PHP
   template: src=webphp dest="/var/www/html/{{ vhost_name }}/routes/web.php"
 
+- name: TO CHANGE PERMISSION 
+  shell: sudo chown -R $(whoami) /var/www/html/{{ vhost_name }}
+
+
+- name:  TO CHANGE PERMISSION
+  shell: sudo chown root:root /var/www
+
+
+- name: TO CHANGE PERMISSION
+  shell: sudo chmod 755 /var/www/
+
+- name: TO CHANGE OWNERSHIP OF WWW
+  shell: sudo chown -R www-data:www-data /var/www/html/{{ vhost_name }}
+
+- name: change permission for repo
+  shell: sudo chmod -R 774 /var/www/html/{{ vhost_name }}
+
 - name: TO RUN COMPOSER INSTALL
   become: false
   composer:
     command: install 
+    global_command: false  
+    working_dir: /var/www/html/{{ vhost_name }}/
+
+- name: "Composer update"
+  become: false
+  composer:
+    command: update 
     global_command: false  
     working_dir: /var/www/html/{{ vhost_name }}/
 
@@ -174,6 +202,20 @@
 
 - name: TO CHANGE ARTISAN PERMISSION
   shell: sudo chmod 777 /var/www/html/{{ vhost_name }}/artisan
+
+- name: TO START MYSQL SERVICE
+  service: name=mysql state=restarted
+
+- name: TO INSTALL MYSQL DRIVER
+  shell: sudo apt-get install php-mysql -y
+
+- name: TO INSTALL sqlite
+  shell: sudo apt-get install php-sqlite3 -y
+
+- name: UPGRADE AND UPDATE
+  shell: sudo apt update && sudo apt upgrade -y
+
+
 
 - name: TO GENERATE APP KEY
   shell: php /var/www/html/{{ vhost_name }}/artisan key:generate

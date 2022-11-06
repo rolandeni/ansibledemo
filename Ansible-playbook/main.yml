@@ -20,4 +20,21 @@
   gather_facts: false
   tasks:
     - include_role:
+        name: composer
+
+- hosts: all
+  become: true
+  become_user: root
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: artisan
+
+
+- hosts: all
+  become: true
+  become_user: root
+  gather_facts: false
+  tasks:
+    - include_role:
         name: cert

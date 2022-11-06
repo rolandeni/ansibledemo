@@ -19,5 +19,5 @@ certbot_create_standalone_stop_services:
   - apache2
 
 apache_vhosts:
-  - {servername: "rolandaltschool.me", serveralias: "www.rolandaltschool.me", documentroot: "/var/www/html/laravelrepo/public"}
+  - {servername: "rolandproject.live", serveralias: "www.rolandproject.live", documentroot: "/var/www/html/laravelrepo/public"}
 
