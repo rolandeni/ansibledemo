@@ -8,6 +8,8 @@ This code is tested on the AWS ubuntu machine.
 + postgresQL
 + COMPOSER
 + CERTBOT
++ postgresQL (**NOTE** :Bash script is saved in template directory)
+
 
 ### Requirements
   - Anisble package installed on local machine or Host server.
